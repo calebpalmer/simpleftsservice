@@ -21,6 +21,7 @@ func (d *Document) Json() (interface{}, error) {
 	if err != nil {
 		panic(err)
 	}
+	defer jsonFile.Close()
 
 	bytes, _ := ioutil.ReadAll(jsonFile)
 

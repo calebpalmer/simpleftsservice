@@ -93,6 +93,7 @@ func (i *Index) AddDocument(id string, doc map[string]interface{}) (string, erro
 	if err != nil {
 		panic(err)
 	}
+	defer jsonFile.Close()
 
 	jsonFile.Write(bytes)
 
@@ -133,6 +134,7 @@ func (i *Index) Build() error {
 		if err != nil {
 			log.Printf("Error indexing document %s, Error: %s", document.Id, err)
 		}
+		jsonFile.Close()
 	}
 
 	return nil

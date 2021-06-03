@@ -25,6 +25,7 @@ func NewIndexManager(path string) *IndexManager {
 	if err != nil {
 		panic(err)
 	}
+	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
@@ -49,6 +50,7 @@ func (indexManager *IndexManager) Save() error {
 		log.Println(err)
 		return err
 	}
+	defer jsonFile.Close()
 
 	jsonFile.Write(bytes)
 
