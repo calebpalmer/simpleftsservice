@@ -109,6 +109,14 @@ func (i *Index) AddDocument(id string, doc map[string]interface{}) (string, erro
 	return id, nil
 }
 
+// Replace document replaces a document in an index.
+func (i *Index) ReplaceDocument(document DocumentJson) {
+	// find the document from the index.  Not cool since it is a slice
+	// and not a map
+
+	// re-write out the file
+}
+
 // Build builds the index
 func (i *Index) Build() error {
 	i.mu.Lock()

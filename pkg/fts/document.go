@@ -6,6 +6,11 @@ import (
 	"os"
 )
 
+type DocumentJson struct {
+	Id       string      `json:"id"`
+	Document interface{} `json:"document"`
+}
+
 type Document struct {
 	Id   string `json:"id,omitempty"`
 	Path string `json:"path"`

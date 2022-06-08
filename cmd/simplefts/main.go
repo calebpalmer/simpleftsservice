@@ -4,21 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/calebpalmer/simpleftsservice/internal/config"
 	"github.com/calebpalmer/simpleftsservice/internal/handlers"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	router := mux.NewRouter()
-
-	if err := handlers.RegisterHandlers(router); err != nil {
+	config, err := config.New("config.yaml")
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+	router := mux.NewRouter()
+
+	if err := handlers.RegisterHandlers(router, config); err != nil {
+		log.Fatal(err)
+	}
+
+	err = router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err == nil {
 			fmt.Println("ROUTE:", pathTemplate)
@@ -44,20 +49,18 @@ func main() {
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	addr := fmt.Sprintf(":%s", port)
+	addr := fmt.Sprintf(":%d", config.HttpConfig.Port)
 
 	fmt.Printf("Starting server on %s\n", addr)
 	httpServer := http.Server{
 		Addr:    addr,
 		Handler: router,
 	}
-	httpServer.ListenAndServe()
+
+	if err := httpServer.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }

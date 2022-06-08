@@ -208,6 +208,45 @@ func (d *DocumentHandler) getDocumentHandler(w http.ResponseWriter, req *http.Re
 	fmt.Fprint(w, string(bytes))
 }
 
+func (d *DocumentHandler) putDocumentHandler(w http.ResponseWriter, req *http.Request) {
+	indexId := mux.Vars(req)["indexId"]
+
+	// get the index
+	index, ok := d.IndexManager.GetIndex(indexId)
+	if !ok {
+		msg, _ := json.Marshal(map[string]string{"error": "IndexNotFound"})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, string(msg))
+		return
+	}
+
+	documentId := mux.Vars(req)["documentId"]
+	document, ok := index.GetDocument(documentId)
+	if !ok {
+		msg, _ := json.Marshal(map[string]string{"error": "DocumentNotFound"})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, string(msg))
+		return
+	}
+
+	// get the doc to add from the body
+	var newDocument fts.DocumentJson
+	err := json.NewDecoder(req.Body).Decode(&newDocument)
+	if err != nil {
+		log.Println(err)
+		msg := fmt.Sprintf("Error parsing json: %s", err)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+
+	if newDocument.Id != document.Id {
+		http.Error(w, "Document id does not match.", http.StatusBadRequest)
+		return
+	}
+}
+
 // RegisterDocumentsesHandlers registers the index handlers.
 func RegisterDocumentsHandlers(router *mux.Router, indexManager *fts.IndexManager) error {
 

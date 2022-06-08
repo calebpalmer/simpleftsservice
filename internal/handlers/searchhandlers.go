@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/calebpalmer/simpleftsservice/pkg/fts"
 	"github.com/gorilla/mux"
@@ -28,6 +29,33 @@ func (sh *SearchHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (sh *SearchHandler) getSearchHandler(w http.ResponseWriter, req *http.Request) {
 	indexId := mux.Vars(req)["indexId"]
+	value := req.FormValue("value")
+	wantDocuments := req.FormValue("documents") == "y"
+
+	extra := ""
+	if wantDocuments {
+		extra = "wantDocuments"
+	}
+
+	if sh.IndexManager.Cache != nil {
+		item, err := sh.IndexManager.Cache.Get(indexId, value, extra)
+		if err != nil {
+			writeInternalServerError(w, err)
+		}
+
+		if item != nil {
+			if os.Getenv("DEBUG") != "" {
+				log.Println("Cache hit!")
+			}
+
+			fmt.Fprint(w, string(item))
+			return
+		}
+
+		if os.Getenv("DEBUG") != "" {
+			log.Println("Cache miss!")
+		}
+	}
 
 	// get the index
 	index, ok := sh.IndexManager.GetIndex(indexId)
@@ -39,12 +67,11 @@ func (sh *SearchHandler) getSearchHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	value := req.FormValue("value")
 	ids := index.SearchValue(value)
 
 	w.Header().Set("Content-Type", "application/json")
 
-	if req.FormValue("documents") == "y" {
+	if wantDocuments {
 		// get documents instead of ids
 		docs := []interface{}{}
 		for _, id := range ids {
@@ -64,10 +91,21 @@ func (sh *SearchHandler) getSearchHandler(w http.ResponseWriter, req *http.Reque
 			writeInternalServerError(w, err)
 			return
 		}
+
 		fmt.Fprint(w, string(response))
+		if sh.IndexManager.Cache != nil {
+			err = sh.IndexManager.Cache.Add(indexId, value, extra, response)
+		}
+
 	} else {
 		response, _ := json.Marshal(map[string][]string{"results": ids})
 		fmt.Fprint(w, string(response))
+		if sh.IndexManager.Cache != nil {
+			err := sh.IndexManager.Cache.Add(indexId, value, extra, response)
+			if err != nil {
+				fmt.Errorf("Error adding to cache: %v", err)
+			}
+		}
 	}
 
 }

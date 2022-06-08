@@ -83,58 +83,6 @@ func (i *IndexHandler) deleteIndexHandler(w http.ResponseWriter, req *http.Reque
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// postIndexHandler is the handler for creating an index
-// func (i *IndexHandler) postIndexHandler(w http.ResponseWriter, req *http.Request) {
-//	indexId := mux.Vars(req)["indexId"]
-
-//	// get the index
-//	index, ok := i.IndexManager.GetIndex(indexId)
-//	if !ok {
-//		msg, err := json.Marshal(map[string]string{"error": "IndexNotFound"})
-//		if err != nil {
-//			log.Fatal(err)
-//			w.Header().Set("Content-Type", "application/json")
-//			w.WriteHeader(http.StatusInternalServerError)
-//			return
-//		}
-
-//		w.Header().Set("Content-Type", "application/json")
-//		w.WriteHeader(http.StatusNotFound)
-//		fmt.Fprint(w, string(msg))
-//		return
-//	}
-
-//	// get the doc to add from the body
-//	var doc map[string]interface{}
-//	err := json.NewDecoder(req.Body).Decode(&doc)
-//	if err != nil {
-//		log.Println(err)
-//		msg := fmt.Sprintf("Error parsing json: %s", err)
-//		http.Error(w, msg, http.StatusBadRequest)
-//		return
-//	}
-
-//	// add the doc to the index
-//	_, err = index.AddDocument(doc)
-//	if err != nil {
-//		msg, _ := json.Marshal(map[string]string{"error": "Internal Server Error"})
-//		w.Header().Set("Content-Type", "application/json")
-//		w.WriteHeader(http.StatusInternalServerError)
-//		fmt.Fprint(w, string(msg))
-//		return
-//	}
-
-//	if err = i.IndexManager.Save(); err != nil {
-//		msg, _ := json.Marshal(map[string]string{"error": "Internal Server Error"})
-//		w.Header().Set("Content-Type", "application/json")
-//		w.WriteHeader(http.StatusInternalServerError)
-//		fmt.Fprint(w, string(msg))
-//		return
-//	}
-
-//	w.WriteHeader(http.StatusCreated)
-// }
-
 // RegisterIndexesHandlers registers the index handlers.
 func RegisterIndexHandlers(router *mux.Router, indexManager *fts.IndexManager) error {
 

@@ -6,19 +6,22 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	"github.com/calebpalmer/simpleftsservice/internal/cache"
 )
 
 type IndexManager struct {
 	mu      sync.Mutex        `json:"-"`
 	Path    string            `json:"-"`
 	Indexes map[string]*Index `json:"indexes"`
+	Cache   *cache.Cache      `json:"-"`
 }
 
 // NewIndexManager creates a new index manager object
-func NewIndexManager(path string) *IndexManager {
+func NewIndexManager(path string, cache *cache.Cache) *IndexManager {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return &IndexManager{Path: path, Indexes: make(map[string]*Index)}
+		return &IndexManager{Path: path, Indexes: make(map[string]*Index), Cache: cache}
 	}
 
 	jsonFile, err := os.Open(path)
@@ -31,6 +34,7 @@ func NewIndexManager(path string) *IndexManager {
 
 	var indexManager IndexManager
 	json.Unmarshal(byteValue, &indexManager)
+	indexManager.Cache = cache
 
 	indexManager.Path = path
 
